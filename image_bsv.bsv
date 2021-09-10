@@ -571,7 +571,7 @@ endfunction
 
 function One_byte circ_shift(One_byte in_byte,Bit#(3) zm); // right circular shift 
 
-    Integer i;
+    Bit#(3) i;
 
     // One_byte out_byte;
 
