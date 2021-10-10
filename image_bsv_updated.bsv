@@ -28,9 +28,10 @@ package image_bsv_updated;
     typedef Tuple3#(Arr_16,Arr_16,Arr_16) Arr_3d;
     typedef Tuple3#(Vector#(Two_d,One_byte),Vector#(Two_d,One_byte),Vector#(Two_d,One_byte)) Three_2d;
     typedef Tuple2#(Arr_3d,Three_2d) Lor_to_rc5;
+    typedef Vector#(Dim,Vector#(Two_d,Bit#(TLog#(Two_d)))) Lor_idx_type;
 
     interface Ifc_io;
-        method ActionValue#(Arr_3d) image_3d_encrypt(Arr_3d a);
+        method ActionValue#(Arr_3d) image_3d_encrypt(Arr_3d a,Lor_idx_type idx);
        // method Arr_3d image_3d_output;
     endinterface
 
@@ -96,6 +97,10 @@ package image_bsv_updated;
     //             seq 
     //                 lorentz_in_r <= big_spiral_out_r;
     //                 lorentz_in_g <= big_spiral_out_g;
+    //                 lorentz_in_r <= big_spiral_out_r;
+    //                 lorentz_in_g <= big_spiral_out_g;
+    //                 lorentz_in_b <= big_spiral_out_b;
+
     //                 lorentz_in_b <= big_spiral_out_b;
 
     //                 lorentz_in <= tuple3(lorentz_in_r,lorentz_in_g,lorentz_in_b);
@@ -256,7 +261,7 @@ package image_bsv_updated;
     //     endrule
     //     */
 
-    method ActionValue#(Arr_3d) image_3d_encrypt(Arr_3d image_in);
+    method ActionValue#(Arr_3d) image_3d_encrypt(Arr_3d image_in,Lor_idx_type idx);
         //Arr_3d rc5_out = tuple3(replicate(replicate(0)),replicate(replicate(0)),replicate(replicate(0)));
         
         //activate.send();
@@ -268,18 +273,19 @@ package image_bsv_updated;
         Arr_3d small_spiral_out = tuple3(spiral_out_r,spiral_out_g,spiral_out_b);
         //Arr_3d rc5_out = tuple3(spiral(tpl_1(image_in)),spiral(tpl_2(image_in)),spiral(tpl_3(image_in)));
 
-        Arr_16 big_spiral_out_r = big_spiral(spiral_out_r);
-        Arr_16 big_spiral_out_g = big_spiral(spiral_out_g);
-        Arr_16 big_spiral_out_b = big_spiral(spiral_out_b);
+        // Arr_16 big_spiral_out_r = big_spiral(spiral_out_r);
+        // Arr_16 big_spiral_out_g = big_spiral(spiral_out_g);
+        // Arr_16 big_spiral_out_b = big_spiral(spiral_out_b);
 
-        Arr_3d big_spiral_out = tuple3(big_spiral_out_r,big_spiral_out_g,big_spiral_out_b);        
+        // Arr_3d big_spiral_out = tuple3(big_spiral_out_r,big_spiral_out_g,big_spiral_out_b);        
 
-        Lor_to_rc5 lor_out_seq = lorentz_confusion(big_spiral_out);
+        // Arr_3d lor_out_seq = lorentz_confusion(big_spiral_out,idx);
 
-        Arr_3d rc5_out = tpl_1(lor_out_seq);             
+        // Arr_3d rc5_out = tpl_1(lor_out_seq);             
 
 
-        return rc5_out;
+        // return lor_out_seq;
+        return small_spiral_out;
     endmethod  
 
     endmodule
@@ -574,7 +580,128 @@ package image_bsv_updated;
                 return idx;
         endfunction
 
-        function Lor_to_rc5 lorentz_confusion(Arr_3d lor_in);
+        // function Lor_to_rc5 lorentz_confusion(Arr_3d lor_in);
+
+        //     Arr_16 lor_in_r = tpl_1(lor_in);
+        //     Arr_16 lor_in_g = tpl_2(lor_in);
+        //     Arr_16 lor_in_b = tpl_3(lor_in);
+
+        //     Arr_16 lor_out_r = replicate(replicate(0));
+        //     Arr_16 lor_out_g = replicate(replicate(0));
+        //     Arr_16 lor_out_b = replicate(replicate(0));            
+
+        //     Float a = unpack(32'h41200000); // 10
+        //     Float b = unpack(32'h402aaaab); // 8/3
+        //     Float c = unpack(32'h41e00000); // 28
+        //     Float dt = unpack(32'h3a83126f); // 0.001
+
+        //     Vector#(Two_d,Float) x;
+        //     Vector#(Two_d,Float) y;
+        //     Vector#(Two_d,Float) z;
+
+        //     Vector#(Two_d,One_byte) x_reg;
+        //     Vector#(Two_d,One_byte) y_reg;
+        //     Vector#(Two_d,One_byte) z_reg;
+
+        //     Vector#(Two_d,Float) x1;
+        //     Vector#(Two_d,Float) y1;
+        //     Vector#(Two_d,Float) z1;
+
+        //     Float temp;
+
+        //     Integer i;
+        //     Integer j;
+
+        //     Int#(64) v;
+
+        //     Float prec_fact = unpack(32'h47c35000); //1E+5
+
+
+        //             /*
+        //             Paper name - www.elsevier.com/locate/optlaseng
+        //         Optics and Lasers in Engineering - Journal - ElsevierOptics and Lasers in Engineering aims at providing an international forum for the interchange of information on the development of optical techniques and lase…www.elsevier.com​
+        //             Salwa K. Abd-El-Hafiz a , Sherif H. AbdElHaleem a , Ahmed G. Radwan a,b, n
+
+        //             lorentz algo is continuos chaos algo
+        //         */
+
+        //     x[0] = unpack(32'h40c96873); // 6.294
+        //     y[0] = unpack(32'hc0d83127); // -6.756
+        //     z[0] = unpack(32'h4038b439); // 2.886
+
+        //     for(i=0;i<valueof(Two_d)-1;i=i+1)
+        //     begin
+        //         x[i+1]=x[i]+dt*a*(y[i]-x[i]);
+        //         y[i+1]=y[i]+dt*(c*x[i+1]-y[i]-x[i+1]*z[i]);
+        //         z[i+1]=z[i]+dt*(x[i+1]*y[i+1]-b*z[i]);
+        //     end
+        //     for(i=0;i<valueof(Two_d);i=i+1)
+        //     begin
+        //         v = tpl_1((vFloatToFixed(6'd0,x[i]*prec_fact,Rnd_Zero)));
+        //         x_reg[i] = pack(v)[7:0];
+
+        //         v = tpl_1((vFloatToFixed(6'd0,y[i]*prec_fact,Rnd_Zero)));
+        //         y_reg[i] = pack(v)[7:0];
+
+        //         v = tpl_1((vFloatToFixed(6'd0,z[i]*prec_fact,Rnd_Zero)));
+        //         z_reg[i] = pack(v)[7:0];
+        //     end
+
+        //     x1 = x;
+        //     y1 = y;
+        //     z1 = z;
+
+        //     Integer idx;
+
+        //     // bubble sort
+        //     for(i=0;i<valueof(Two_d)-1;i=i+1)
+        //     begin
+        //         for(j=0;j<valueof(Two_d)-i-1;j=j+1)
+        //         begin
+        //             if(x[j]>x[j+1])
+        //             begin
+        //                 temp = x[j];
+        //                 x[j] = x[j+1];
+        //                 x[j+1] = temp;
+        //             end
+
+        //             if(y[j]>y[j+1])
+        //             begin
+        //                 temp = y[j];
+        //                 y[j] = y[j+1];
+        //                 y[j+1] = temp;
+        //             end
+
+        //             if(z[j]>z[j+1])
+        //             begin
+        //                 temp = z[j];
+        //                 z[j] = z[j+1];
+        //                 z[j+1] = temp;
+        //             end
+        //         end
+        //     end
+
+        //     // binary search
+        //     for(i=0;i<valueof(Two_d);i=i+1)
+        //     begin
+        //         idx = bin_search(x1,x[i]);
+        //         lor_out_r[i/valueof(Height)][i%valueof(Width)] = lor_in_r[idx/valueof(Height)][idx%valueof(Width)];
+        //         idx = bin_search(y1,y[i]);
+        //         lor_out_g[i/valueof(Height)][i%valueof(Width)] = lor_in_g[idx/valueof(Height)][idx%valueof(Width)];
+        //         idx = bin_search(z1,z[i]);
+        //         lor_out_b[i/valueof(Height)][i%valueof(Width)] = lor_in_b[idx/valueof(Height)][idx%valueof(Width)];
+        //     end
+
+        //     Arr_3d lor_out = tuple3(lor_out_r,lor_out_g,lor_out_b);
+        //     Three_2d trunc_lor_seq = tuple3(x_reg,y_reg,z_reg);
+        //     Lor_to_rc5 lor_out_rc5 = tuple2(lor_out,trunc_lor_seq);
+
+
+        //     return lor_out_rc5;
+        // endfunction
+
+        function Arr_3d lorentz_confusion(Arr_3d lor_in,Lor_idx_type idx);
+
 
             Arr_16 lor_in_r = tpl_1(lor_in);
             Arr_16 lor_in_g = tpl_2(lor_in);
@@ -584,115 +711,26 @@ package image_bsv_updated;
             Arr_16 lor_out_g = replicate(replicate(0));
             Arr_16 lor_out_b = replicate(replicate(0));            
 
-            Float a = unpack(32'h41200000); // 10
-            Float b = unpack(32'h402aaaab); // 8/3
-            Float c = unpack(32'h41e00000); // 28
-            Float dt = unpack(32'h3a83126f); // 0.001
-
-            Vector#(Two_d,Float) x;
-            Vector#(Two_d,Float) y;
-            Vector#(Two_d,Float) z;
-
-            Vector#(Two_d,One_byte) x_reg;
-            Vector#(Two_d,One_byte) y_reg;
-            Vector#(Two_d,One_byte) z_reg;
-
-            Vector#(Two_d,Float) x1;
-            Vector#(Two_d,Float) y1;
-            Vector#(Two_d,Float) z1;
-
-            Float temp;
-
+            
             Integer i;
-            Integer j;
+                     
 
-            Int#(64) v;
-
-            Float prec_fact = unpack(32'h47c35000); //1E+5
-
-
-                    /*
-                    Paper name - www.elsevier.com/locate/optlaseng
-                Optics and Lasers in Engineering - Journal - ElsevierOptics and Lasers in Engineering aims at providing an international forum for the interchange of information on the development of optical techniques and lase…www.elsevier.com​
-                    Salwa K. Abd-El-Hafiz a , Sherif H. AbdElHaleem a , Ahmed G. Radwan a,b, n
-
-                    lorentz algo is continuos chaos algo
-                */
-
-            x[0] = unpack(32'h40c96873); // 6.294
-            y[0] = unpack(32'hc0d83127); // -6.756
-            z[0] = unpack(32'h4038b439); // 2.886
-
-            for(i=0;i<valueof(Two_d)-1;i=i+1)
-            begin
-                x[i+1]=x[i]+dt*a*(y[i]-x[i]);
-                y[i+1]=y[i]+dt*(c*x[i+1]-y[i]-x[i+1]*z[i]);
-                z[i+1]=z[i]+dt*(x[i+1]*y[i+1]-b*z[i]);
-            end
             for(i=0;i<valueof(Two_d);i=i+1)
             begin
-                v = tpl_1((vFloatToFixed(6'd0,x[i]*prec_fact,Rnd_Zero)));
-                x_reg[i] = pack(v)[7:0];
+                
 
-                v = tpl_1((vFloatToFixed(6'd0,y[i]*prec_fact,Rnd_Zero)));
-                y_reg[i] = pack(v)[7:0];
-
-                v = tpl_1((vFloatToFixed(6'd0,z[i]*prec_fact,Rnd_Zero)));
-                z_reg[i] = pack(v)[7:0];
-            end
-
-            x1 = x;
-            y1 = y;
-            z1 = z;
-
-            Integer idx;
-
-            // bubble sort
-            for(i=0;i<valueof(Two_d)-1;i=i+1)
-            begin
-                for(j=0;j<valueof(Two_d)-i-1;j=j+1)
-                begin
-                    if(x[j]>x[j+1])
-                    begin
-                        temp = x[j];
-                        x[j] = x[j+1];
-                        x[j+1] = temp;
-                    end
-
-                    if(y[j]>y[j+1])
-                    begin
-                        temp = y[j];
-                        y[j] = y[j+1];
-                        y[j+1] = temp;
-                    end
-
-                    if(z[j]>z[j+1])
-                    begin
-                        temp = z[j];
-                        z[j] = z[j+1];
-                        z[j+1] = temp;
-                    end
-                end
-            end
-
-            // binary search
-            for(i=0;i<valueof(Two_d);i=i+1)
-            begin
-                idx = bin_search(x1,x[i]);
-                lor_out_r[i/valueof(Height)][i%valueof(Width)] = lor_in_r[idx/valueof(Height)][idx%valueof(Width)];
-                idx = bin_search(y1,y[i]);
-                lor_out_g[i/valueof(Height)][i%valueof(Width)] = lor_in_g[idx/valueof(Height)][idx%valueof(Width)];
-                idx = bin_search(z1,z[i]);
-                lor_out_b[i/valueof(Height)][i%valueof(Width)] = lor_in_b[idx/valueof(Height)][idx%valueof(Width)];
+                lor_out_r[i/valueof(Height)][i%valueof(Width)] = lor_in_r[(idx[0][i])/16][(idx[0][i])%16];
+                
+                lor_out_g[i/valueof(Height)][i%valueof(Width)] = lor_in_g[(idx[1][i])/16][(idx[1][i])%16];
+                
+                lor_out_b[i/valueof(Height)][i%valueof(Width)] = lor_in_b[(idx[2][i])/16][(idx[2][i])%16];
             end
 
             Arr_3d lor_out = tuple3(lor_out_r,lor_out_g,lor_out_b);
-            Three_2d trunc_lor_seq = tuple3(x_reg,y_reg,z_reg);
-            Lor_to_rc5 lor_out_rc5 = tuple2(lor_out,trunc_lor_seq);
 
-
-            return lor_out_rc5;
+            return lor_out;
         endfunction
+
 
         function Arr_3d rossler_diffusion(Arr_3d ros_in);
             Arr_16 ros_in_r = tpl_1(ros_in);
