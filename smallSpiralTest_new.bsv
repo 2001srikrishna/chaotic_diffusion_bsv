@@ -7,10 +7,14 @@ package smallSpiralTest_new;
     import List ::*;
     import BuildVector::*;
     import FIFOF::*;
+    import AXI4_Types::*;
     
     typedef 16 Width ;
     typedef 16 Height ;
     typedef 3 Dim ;
+    typedef 0 Null;
+
+    typedef 8 Eight;
 
     typedef TMul#(TMul#(Width,Height),Dim) SizeOfLengthReal ;
     typedef TDiv#(SizeOfLengthReal,Dim) Two_d ;
@@ -128,127 +132,7 @@ package smallSpiralTest_new;
                 end
 
 
-              /*
-              small_arr = cut_arr(ss_in,0,0);
-
-              for(i=0;i<wid*heit;i=i+1)
-                begin
-                    small_temp[i/wid][i%heit]=small_arr[idx[i]/wid][idx[i]%heit];
-                end
-
-                ss_out = join_arr(ss_out,small_temp,0,0);
-
-              small_arr = cut_arr(ss_in,0,8);
-
-              for(i=0;i<wid*heit;i=i+1)
-                begin
-                    small_temp[i/wid][i%heit]=small_arr[idx[i]/wid][idx[i]%heit];
-                end
-                ss_out = join_arr(ss_out,small_temp,0,8);
-                
-
-                small_arr = cut_arr(ss_in,8,0);
-
-              for(i=0;i<wid*heit;i=i+1)
-                begin
-                    small_temp[i/wid][i%heit]=small_arr[idx[i]/wid][idx[i]%heit];
-                end
-                ss_out = join_arr(ss_out,small_temp,8,0);
-
-                small_arr = cut_arr(ss_in,8,8);
-
-              for(i=0;i<wid*heit;i=i+1)
-                begin
-                    small_temp[i/wid][i%heit]=small_arr[idx[i]/wid][idx[i]%heit];
-                end
-                ss_out = join_arr(ss_out,small_temp,8,8);
-                */
-
-
-
-                /*
-                for(i=0;i<valueof(Width);i=i+8)
-                begin
-                    for(j=0;j<valueof(Height);j=j+8)
-                    begin
-                        small_arr = cut_arr(ss_in,i,j);
-
-                    while(ht<heit && bt<wid)  //ht<heit && bt<wid
-                        begin
-                                if(ht<heit)
-                                begin
-                                    while(l-bt<0)//l<bt
-                                    begin
-                                        small_temp[x][y]=small_arr[k][l];
-                                        l=l+1;
-                                        if(y<wid-1)
-                                            y=y+1;
-                                        else
-                                        begin
-                                            y=0;
-                                            x=x+1;
-                                        end
-                                    end
-                                end
-
-
-                                if(l<wid)
-                                begin            
-                                    while(k-ht<0) //k<ht
-                                    begin
-                                        small_temp[x][y]=small_arr[k][l];
-                                        k=k+1;
-                                        if(y<wid-1)
-                                            y=y+1;
-                                        else
-                                        begin
-                                            y=0;
-                                            x=x+1;
-                                        end
-                                    end
-                                end
-                                
-
-                                if(wid-bt>0)
-                                begin
-                                    while(l-(wid-bt-2)>0)   //l>wid-bt-2
-                                    begin
-                                        small_temp[x][y]=small_arr[k][l];
-                                        l=l-1;
-                                        if(y<wid-1)
-                                            y=y+1;
-                                        else
-                                        begin
-                                            y=0;
-                                            x=x+1;
-                                        end
-                                    end
-                                end
-
-                                if(l>=0)
-                                begin
-                                    while(k-(heit-ht-2)>0)  //k>heit-ht-2
-                                    begin
-                                        small_temp[x][y]=small_arr[k][l];
-                                        k=k-1;
-                                        if(y<wid-1)
-                                            y=y+1;
-                                        else
-                                        begin
-                                            y=0;
-                                            x=x+1;
-                                        end
-                                    end
-                                end
-
-                            bt=bt+1;
-                            ht=ht+1;           
-                        end
-
-                        ss_out = join_arr(ss_out,small_temp,i,j);
-                    end
-                end
-                */
+              
                 return ss_out;
 
     endfunction
@@ -256,114 +140,35 @@ package smallSpiralTest_new;
 
 module mkTest_ss(Ifc_io);
 
-// Arr_16 ss_in = replicate(replicate(0));
-// Arr_8 ss_out = replicate(replicate(0));
-// Arr_16 ss_test = replicate(replicate(0));
 
-// Integer i=0;
-// Integer j=0;
-// Reg#(UInt#(9)) m <- mkReg(0);
-
-// for(i=0;i<valueOf(Width);i=i+1)
-// begin
-//     for(j=0;j<valueOf(Height);j=j+1)
-//     begin
-//         ss_in[i][j] = fromInteger(valueOf(Width)*i+j);
-//     end
-// end
-
-// for(i=0;i<valueOf(Width);i=i+8)
-// begin
-//     for(j=0;j<valueOf(Height);j=j+8)
-//     begin
-//     ss_out = cut_arr(ss_in,i,j);
-//     ss_test = join_arr(ss_test,ss_out,i,j);
-//     end
-// end
 
     method ActionValue#(Arr_16) io (Arr_16 ss_in);
         Arr_16 out = spiral(ss_in);
         return out;
     endmethod
 
-// rule rl_display;
-//     $display(ss_test[m/fromInteger(valueOf(Width))][m%fromInteger(valueOf(Height))]);
-//     m<=m+1;
-// endrule
 
-// rule rl_check(m>255);
-//     $finish(0);
-// endrule
+endmodule
+
+interface Axi4_layer;
+    interface Ifc_io io;
+    interface AXI4_Slave_IFC#(Two_d,Eight,Null) slave;
+endinterface
+
+(* synthesize *)
+module  burst_wrapper(Axi4_layer);
+
+Ifc_io small_spiral_out <- mkTest_ss; 
+
+AXI4_Slave_Xactor_IFC#(Two_d,Eight,Null)   s_xactor <- mkAXI4_Slave_Xactor();
+
+
+
 endmodule
 
 
 
-    // interface Ifc_wrapper;
 
-    //         method ActionValue#(One_byte) o_stream ;
-    //         method Action i_stream() ;
-
-    // endinterface
-
-    // (* synthesize *)
-    // module wrapper_mod(/* Ifc_wrapper */);
-    // Ifc_io io_wrap <- mkTest_ss; 
-    // Wire#(Arr_16) stream_in <- mkWire;
-    // Vector#(256,Reg#(One_byte)) storage <- mkReg(defaultValue);
-    // Vector#(256,Reg#(One_byte)) in_storage <- mkReg(defaultValue);
-    // One_byte in = 0;
-    // One_byte out = 0;
-    // Reg#(Bool) out_en <- mkReg(False);
-    // Reg#(Bool) in_en <- mkReg(False);
-    // FIFOF#(One_byte) in_stream <- mkSizedFIFOF(64);
-    // FIFOF#(One_byte) out_stream <- mkSizedFIFOF(64);
-
-    // PulseWire rule_en <- mkPulseWire;
-
-
-    // rule stream((!out_en) && rule_en);
-    // Arr_16 stream_out <- io_wrap.io(stream_in);
-    // // storage <= stream_out; // use for loop to populate
-    // endrule
-
-    // // rule in_stream(!in_en);
-    // // stream_in
-    // // endrule
-
-    // Reg#(int) out_count <- mkReg(0);
-    // Reg#(int) in_count <- mkReg(0);
-    // method ActionValue#(One_byte) o_stream if(out_en);
-
-    // if(out_count == 255)
-    // begin
-    //     out_count <= 0;
-    //     out_en <= False;
-    //     return storage[255];
-    // end
-    // else
-    // begin
-    //     out_count <= out_count +1 ;
-    //     return storage[out_count];
-    // end
-    // endmethod
-
-    // method Action i_stream(One_byte in) if(in_en);
-    // if(in_count == 255)
-    // begin
-    //     rule_en.send();
-    //     in_count <=0;
-    //     in_en <= False;
-    //     stream_in <= {in_storage[0:254],in};
-    // end
-    // else
-    // begin
-    //     in_count <= in_count + 1;
-    //     in_storage[in_count] <= in;
-    // end
-
-    // endmethod
-
-    // endmodule
 endpackage
 
 
