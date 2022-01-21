@@ -24,6 +24,7 @@ package smallSpiralTest_new;
 
     typedef Bit#(8) One_byte;
     typedef Vector#(Width,Vector#(Height,(One_byte))) Arr_16;
+    typedef Vector#(Width,Vector#(Height,Reg#(One_byte))) Arr_16_Reg;
     typedef Vector#(8,Vector#(8,(One_byte))) Arr_8;
     typedef Vector#(Two_d,(One_byte)) Arr_1d;
 
@@ -31,17 +32,20 @@ package smallSpiralTest_new;
     typedef Tuple3#(Vector#(Two_d,One_byte),Vector#(Two_d,One_byte),Vector#(Two_d,One_byte)) Three_2d;
     typedef Tuple2#(Arr_3d,Three_2d) Lor_to_rc5;
 
-    interface Io_io;
-        method Action ip (Arr_16 ss_in);
-        method Arr_16  op;    
-    endinterface
-
     interface Ifc_io;
+        // method Action ip (Arr_16_Reg ss_in);
+        // method Arr_16_Reg  op;    
 
-        interface Io_io io;
-        // method ActionValue#(Tuple2#(Bool, One_byte)) read_req(Bit#(TLog#(Two_d)) addr);
+        method ActionValue#(Arr_16) io(Arr_16_Reg ss_in);
 
     endinterface
+
+    // interface Ifc_io;
+
+    //     //interface Io_io io;
+    //     // method ActionValue#(Tuple2#(Bool, One_byte)) read_req(Bit#(TLog#(Two_d)) addr);
+
+    // endinterface
     
     function Arr_8 cut_arr(Arr_16 ss_in,Integer i,Integer j);
 
@@ -148,17 +152,49 @@ package smallSpiralTest_new;
 
 module mkTest_ss(Ifc_io);
 
-    Reg#(Arr_16)    temp <- mkRegU;
-
-    interface Io_io io;
-    method Action ip (Arr_16 ss_in);
-        temp <= ss_in;
+    method ActionValue#(Arr_16) io(Arr_16_Reg ss_in);
+        return spiral(ss_in);
     endmethod
 
-    method Arr_16 op;
-        return spiral(temp);
-    endmethod
+    //Arr_16_Reg temp <- replicateM(replicateM(mkReg(0)));
+    // Reg#(Arr_16) temp <- mkRegU;
+
+    // method Action ip (Arr_16_Reg ss_in);
+    //     temp <= ss_in;
+    // endmethod
+
+    // method Arr_16_Reg op;
+    //     return spiral(temp);
+    // endmethod
+endmodule
+
+    interface Wrapper;
+            method Action byte_in(Bit#(TLog#(Two_d)) idx, One_byte data);
+            method One_byte byte_out(Bit#(TLog#(Two_d)) idx);
     endinterface
+
+(* synthesize *)
+module small_burst(Wrapper);
+
+    Arr_16_Reg burst_in <- replicateM(replicateM(mkReg(0)));
+    Reg#(Arr_16) burst_out <- mkRegU;
+
+    Ifc_io io <- mkTest_ss;
+
+    rule arr_in;
+        let x <- io.io(burst_in);
+        burst_out <= x;
+    endrule
+
+    method Action byte_in(Bit#(TLog#(Two_d)) idx, One_byte data);
+        burst_in[idx/16][idx%16] <= data;
+    endmethod
+
+    method One_byte byte_out(Bit#(TLog#(Two_d)) idx);
+        return burst_out[idx/16][idx%16];
+    endmethod   
+
+endmodule
 
     // method ActionValue#(Tuple2#(Bool, One_byte)) read_req(Bit#(TLog#(Two_d)) addr);
 	// 			Bool success = ((addr%8)==0)&&(addr>=0)&&(addr<=256);
@@ -172,42 +208,42 @@ module mkTest_ss(Ifc_io);
 	// 		endmethod
 
 
-endmodule
-
-interface Axi4_layer;
-    interface AXI4_Slave_IFC#(TLog#(Two_d),Eight,Null) slave;
-endinterface
-
-(* synthesize *)
-module  burst_wrapper(Axi4_layer);
-
-Ifc_io small_spiral_out <- mkTest_ss; 
-
-AXI4_Slave_Xactor_IFC#(TLog#(Two_d),Eight,Null)   s_xactor <- mkAXI4_Slave_Xactor();
-
-Reg#(Bit#(8)) rg_rdburst_count <- mkReg(0);
-Reg#(Bit#(8)) rg_wrburst_count <- mkReg(0);
-
-Reg#(AXI4_Rd_Addr#(TLog#(Two_d),Null)) rg_rdpacket <- mkReg(?);
-Reg#(AXI4_Wr_Addr#(TLog#(Two_d),Null)) rg_wrpacket <- mkReg(?);
-
-// Arr_16 ss_in = replicate(replicate(defaultValue));
-
-Reg#(Bool)  succ <- mkReg(False);
-
-        // rule read_request(rg_rdburst_count==0);
-		// 	let req<-pop_o(s_xactor.o_rd_addr);
-		// 	let {succ,data}<-small_spiral_out.read_req(req.araddr);
-        //     rg_rdpacket<=req;	
-
-		// 	if(req.arlen!=0)
-		// 		rg_rdburst_count<=1;
-		// 	let resp= AXI4_Rd_Data{rresp:succ?AXI4_OKAY:AXI4_SLVERR, rid:req.arid,rlast:(req.arlen==0),rdata:data, ruser: ?};
-		// 	s_xactor.i_rd_data.enq(resp);
-		// endrule
 
 
-endmodule
+// interface Axi4_layer;
+//     interface AXI4_Slave_IFC#(TLog#(Two_d),Eight,Null) slave;
+// endinterface
+
+// (* synthesize *)
+// module  burst_wrapper(Axi4_layer);
+
+// Ifc_io small_spiral_out <- mkTest_ss; 
+
+// AXI4_Slave_Xactor_IFC#(TLog#(Two_d),Eight,Null)   s_xactor <- mkAXI4_Slave_Xactor();
+
+// Reg#(Bit#(8)) rg_rdburst_count <- mkReg(0);
+// Reg#(Bit#(8)) rg_wrburst_count <- mkReg(0);
+
+// Reg#(AXI4_Rd_Addr#(TLog#(Two_d),Null)) rg_rdpacket <- mkReg(?);
+// Reg#(AXI4_Wr_Addr#(TLog#(Two_d),Null)) rg_wrpacket <- mkReg(?);
+
+// // Arr_16 ss_in = replicate(replicate(defaultValue));
+
+// Reg#(Bool)  succ <- mkReg(False);
+
+//         // rule read_request(rg_rdburst_count==0);
+// 		// 	let req<-pop_o(s_xactor.o_rd_addr);
+// 		// 	let {succ,data}<-small_spiral_out.read_req(req.araddr);
+//         //     rg_rdpacket<=req;	
+
+// 		// 	if(req.arlen!=0)
+// 		// 		rg_rdburst_count<=1;
+// 		// 	let resp= AXI4_Rd_Data{rresp:succ?AXI4_OKAY:AXI4_SLVERR, rid:req.arid,rlast:(req.arlen==0),rdata:data, ruser: ?};
+// 		// 	s_xactor.i_rd_data.enq(resp);
+// 		// endrule
+
+
+// endmodule
 
 endpackage
 
