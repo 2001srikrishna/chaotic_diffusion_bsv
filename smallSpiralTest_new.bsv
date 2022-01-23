@@ -47,7 +47,7 @@ package smallSpiralTest_new;
 
     // endinterface
     
-    function Arr_8 cut_arr(Arr_16 ss_in,Integer i,Integer j);
+    function Arr_8 cut_arr(Arr_16_Reg ss_in,Integer i,Integer j);
 
             Arr_8 small_arr = replicate(replicate(0));
 
@@ -105,7 +105,7 @@ package smallSpiralTest_new;
             return ss_16;
     endfunction
 
-    function Arr_16 spiral(Arr_16 ss_in);
+    function Arr_16 spiral(Arr_16_Reg ss_in);
 
                 Arr_16 ss_out = replicate(replicate(0));
                 Arr_8 small_arr = replicate(replicate(0));
