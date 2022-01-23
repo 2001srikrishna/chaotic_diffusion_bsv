@@ -174,7 +174,7 @@ endmodule
     endinterface
 
 (* synthesize *)
-module small_burst(Wrapper);
+module mksmallburst(Wrapper);
 
     Reg#(Arr_16) burst_in <- mkRegU;
     Arr_16 burst_out = spiral(burst_in);
