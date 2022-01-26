@@ -35,6 +35,7 @@ package lorentzTest;
             Arr_16 lor_in_r = tpl_1(lor_in);
             Arr_16 lor_in_g = tpl_2(lor_in);
             Arr_16 lor_in_b = tpl_3(lor_in);
+            
 
             Arr_16 lor_out_r = replicate(replicate(0));
             Arr_16 lor_out_g = replicate(replicate(0));
