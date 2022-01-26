@@ -1,1 +1,1 @@
-# chotic_diffusion_bsv
+# chaotic_diffusion_bsv
