@@ -88,13 +88,31 @@ package lorentzTest;
             return lor_out;
         endfunction
 
+    interface Wrapper_3d;
+            method Action byte_in(Bit#(TLog#(Two_d)) idx1,Bit#(TLog#(Two_d)) idx2,Bit#(TLog#(Two_d)) idx3, One_byte data1, One_byte data2, One_byte data3);
+            method Tuple3#(One_byte,One_byte,One_byte) byte_out(Bit#(TLog#(Two_d)) idx1,Bit#(TLog#(Two_d)) idx2,Bit#(TLog#(Two_d)) idx3);
+    endinterface
+
 
 (* synthesize *)
-module mkLorTest(Ifc_io);
+module mkLorTest(Wrapper_3d);
 
-    method ActionValue#(Arr_3d) io (Arr_3d lor_in);
-        Arr_3d lor_out = lorentz_confusion(lor_in); 
-    return lor_out;
+    Reg#(Arr_16) burst_in_r <- mkRegU;
+    Reg#(Arr_16) burst_in_g <- mkRegU;
+    Reg#(Arr_16) burst_in_b <- mkRegU;
+
+    Arr_3d burst_out = lorentz_confusion(tuple3(burst_in_r,burst_in_g,burst_in_b));
+    
+
+    method Action byte_in(Bit#(TLog#(Two_d)) idx1,Bit#(TLog#(Two_d)) idx2,Bit#(TLog#(Two_d)) idx3, One_byte data1, One_byte data2, One_byte data3);
+        burst_in_r[idx1/16][idx1%16] <= data1;
+        burst_in_g[idx2/16][idx2%16] <= data2;
+        burst_in_b[idx3/16][idx3%16] <= data3;
     endmethod
+
+    method Tuple3#(One_byte,One_byte,One_byte) byte_out(Bit#(TLog#(Two_d)) idx1,Bit#(TLog#(Two_d)) idx2,Bit#(TLog#(Two_d)) idx3);
+        return tuple3(tpl_1(burst_out)[idx1/16][idx1%16],tpl_2(burst_out)[idx2/16][idx2%16],tpl_3(burst_out)[idx3/16][idx3%16]);
+    endmethod   
+
 endmodule
 endpackage
